@@ -1,0 +1,7 @@
+{
+  "willBreak": true,
+  "caughtByExistingTests": false,
+  "reason": "chalk@5 is ESM-only. bin/report.js does require('chalk'), which breaks at runtime, but no test file imports bin/report.js, so the test suite stays green.",
+  "affectedFile": "bin/report.js",
+  "category": "silent-break"
+}
