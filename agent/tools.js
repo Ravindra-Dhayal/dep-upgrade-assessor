@@ -60,4 +60,36 @@ async function getChangelog(packageName, currentVersion, targetVersion) {
   return { found: true, owner, repo, releases };
 }
 
-module.exports = { getChangelog };
+const fs = require("fs");
+const path = require("path");
+
+// Tool: search a codebase directory for usages of a given package.
+// Returns every file (and matching lines) that imports/requires it.
+function searchCodebaseUsage(fixtureDir, packageName) {
+  const matches = [];
+
+  function walk(dir) {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      if (entry.name === "node_modules" || entry.name.startsWith(".")) continue;
+      const fullPath = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        walk(fullPath);
+      } else if (entry.isFile() && /\.(js|ts|mjs|cjs)$/.test(entry.name)) {
+        const content = fs.readFileSync(fullPath, "utf8");
+        const lines = content.split("\n");
+        lines.forEach((line, i) => {
+          const usesRequire = line.includes(`require("${packageName}")`) || line.includes(`require('${packageName}')`);
+          const usesImport = line.includes(`from "${packageName}"`) || line.includes(`from '${packageName}'`);
+          if (usesRequire || usesImport) {
+            matches.push({ file: path.relative(fixtureDir, fullPath), line: i + 1, code: line.trim() });
+          }
+        });
+      }
+    }
+  }
+
+  walk(fixtureDir);
+  return { package: packageName, usages: matches };
+}
+
+module.exports = { getChangelog, searchCodebaseUsage };
