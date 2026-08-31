@@ -1,0 +1,6 @@
+{
+  "package": "chalk",
+  "currentVersion": "4.1.0",
+  "targetVersion": "4.1.2",
+  "cliEntrypoint": "bin/report.js"
+}
